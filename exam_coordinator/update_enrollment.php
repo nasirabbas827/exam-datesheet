@@ -7,7 +7,7 @@ if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "exam_coordinator") {
     exit;
 }
 
-// Handle form submission
+// Handle update form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $course_id = $_POST['course_id'];
 
@@ -19,40 +19,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $student_ids = explode("\n", $file_content);
         $student_ids = array_map('trim', $student_ids); // Remove leading/trailing whitespace
 
+        // Delete existing enrollments for the course
+        $delete_sql = "DELETE FROM Enrollments WHERE course_id = ?";
+        $delete_stmt = $conn->prepare($delete_sql);
+        $delete_stmt->bind_param("i", $course_id);
+        $delete_stmt->execute();
+        $delete_stmt->close();
+
         // Insert each student ID into Enrollments table for the selected course
         foreach ($student_ids as $student_id) {
             // Validate student ID format (assuming BC160300123 format)
             if (preg_match('/^BC\d{9}$/', $student_id)) {
-                // Check if the enrollment already exists for this course and student
-                $check_sql = "SELECT * FROM Enrollments WHERE course_id = ? AND student_id = ?";
-                $check_stmt = $conn->prepare($check_sql);
-                $check_stmt->bind_param("is", $course_id, $student_id);
-                $check_stmt->execute();
-                $check_result = $check_stmt->get_result();
+                // Insert the new enrollment
+                $insert_sql = "INSERT INTO Enrollments (course_id, student_id) VALUES (?, ?)";
+                $insert_stmt = $conn->prepare($insert_sql);
+                $insert_stmt->bind_param("is", $course_id, $student_id);
 
-                if ($check_result->num_rows == 0) {
-                    // Insert the new enrollment
-                    $insert_sql = "INSERT INTO Enrollments (course_id, student_id) VALUES (?, ?)";
-                    $insert_stmt = $conn->prepare($insert_sql);
-                    $insert_stmt->bind_param("is", $course_id, $student_id);
-
-                    if ($insert_stmt->execute()) {
-                        echo "<script>alert('Enrollment added successfully'); window.location.href = 'view_enrollments.php';</script>";
-                    } else {
-                        echo "<script>alert('Error adding enrollment'); window.location.href = 'add_enrollment.php';</script>";
-                    }
-                    $insert_stmt->close();
+                if ($insert_stmt->execute()) {
+                    echo "<script>alert('Enrollment updated successfully'); window.location.href = 'view_enrollments.php';</script>";
                 } else {
-                    echo "<script>alert('Student with ID $student_id is already enrolled in this course'); window.location.href = 'add_enrollment.php';</script>";
+                    echo "<script>alert('Error updating enrollment'); window.location.href = 'update_enrollment.php';</script>";
                 }
-
-                $check_stmt->close();
+                $insert_stmt->close();
             } else {
-                echo "<script>alert('Invalid student ID format: $student_id'); window.location.href = 'add_enrollment.php';</script>";
+                echo "<script>alert('Invalid student ID format: $student_id'); window.location.href = 'update_enrollment.php';</script>";
             }
         }
     } else {
-        echo "<script>alert('Failed to upload file'); window.location.href = 'add_enrollment.php';</script>";
+        echo "<script>alert('Failed to upload file'); window.location.href = 'update_enrollment.php';</script>";
     }
 }
 ?>
@@ -60,7 +54,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Add Enrollment</title>
+    <title>Update Enrollment</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
@@ -68,21 +62,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <body>
 
-<?php
-include('navbar.php');
-?>
+<?php include('navbar.php'); ?>
 
 <div class="container mt-5">
-    <h2>Add New Enrollment</h2>
+    <h2>Update Enrollment</h2>
     <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST" enctype="multipart/form-data">
-        <div class="form-group">
-            <label for="course_id">Course:</label>
+        <div class="form-group mt-3">
+            <label for="course_id">Select Course:</label>
             <select class="form-control" id="course_id" name="course_id" required>
                 <?php
-                $sql = "SELECT course_id, course_name FROM Courses";
-                $result = $conn->query($sql);
-                while ($row = $result->fetch_assoc()) {
-                    echo "<option value='{$row['course_id']}'>{$row['course_name']}</option>";
+                $course_sql = "SELECT course_id, course_name FROM Courses";
+                $course_result = $conn->query($course_sql);
+                while ($course_row = $course_result->fetch_assoc()) {
+                    echo "<option value='{$course_row['course_id']}'>{$course_row['course_name']}</option>";
                 }
                 ?>
             </select>
@@ -92,8 +84,8 @@ include('navbar.php');
             <input type="file" class="form-control-file" id="student_file" name="student_file" accept=".txt" required>
             <small class="form-text text-muted">Upload a .txt file containing student IDs (one per line).</small>
         </div>
-        <button type="submit" class="btn btn-primary">Add Enrollment</button>
-        <a class="btn btn-outline-dark" href="view_enrollments.php">View Enrollments</a>
+        <button type="submit" class="btn btn-primary">Update Enrollment</button>
+        <a class="btn btn-outline-dark ml-2" href="view_enrollments.php">Cancel</a>
     </form>
 </div>
 

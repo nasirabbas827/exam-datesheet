@@ -7,7 +7,6 @@
         <ul class="navbar-nav ml-auto">
            
                 <li class="nav-item"><a class="nav-link" href="superintendent_dashboard.php">Home</a></li>
-                <li class="nav-item"><a class="nav-link" href="notifications.php">Notifications</a></li>
                 <li class="nav-item"><a class="nav-link" href="logout.php">Logout</a></li>
         </ul>
     </div>

@@ -9,20 +9,14 @@
         <a class="nav-link" href="update_admin.php">Update Profile</a>
       </li>
       <li class="nav-item ">
-        <a class="nav-link" href="add_user.php">Users</a>
+        <a class="nav-link" href="add_faculty.php">Faculty</a>
       </li>
       <li class="nav-item ">
-        <a class="nav-link" href="add_course.php">Courses</a>
+        <a class="nav-link" href="add_user.php">Exam Coordinator</a>
       </li>
       <li class="nav-item ">
-        <a class="nav-link" href="add_enrollment.php">Enrollments</a>
+        <a class="nav-link" href="view_schedule.php">View Schedule</a>
       </li>
-      <li class="nav-item ">
-        <a class="nav-link" href="add_hall.php">Halls</a>
-      </li>
-      <li class="nav-item ">
-        <a class="nav-link" href="add_exam.php">Exam Schedule</a>
-      </li>     
       <li class="nav-item">
         <a class="nav-link" href="logout.php">Logout</a>
       </li>

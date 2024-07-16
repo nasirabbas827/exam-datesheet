@@ -42,15 +42,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $_SESSION["email"] = $email;
                     $_SESSION["role"] = $role;
                     // Redirect user to their respective dashboard based on role
-                    if ($role === 'student') {
-                        header("location: student/student_dashboard.php");
-                    } else if ($role === 'superintendent') {
-                        header("location: superintendent/superintendent_dashboard.php");
-                    } else if ($role === 'exam_coordinator') {
+                     if ($role === 'exam_coordinator') {
                         header("location: exam_coordinator/exam_coordinator_dashboard.php");
                     } else {
                         // For example, redirect to a general dashboard
-                        header("location: general_dashboard.php");
+                        echo "Invalid User";
                     }
                 } else {
                     $password_err = "The password you entered was not valid.";

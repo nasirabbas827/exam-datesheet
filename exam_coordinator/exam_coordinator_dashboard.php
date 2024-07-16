@@ -1,39 +1,42 @@
 <?php
 session_start();
-include'config.php' ;
+include 'config.php';
+
 if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "exam_coordinator") {
     header("Location: login.php");
     exit;
 }
+
 // Fetch data for dashboard
 $totalUsers = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM users"))['total'];
 $totalCourses = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM Courses"))['total'];
 $totalHalls = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM ExaminationHalls"))['total'];
 $totalEnrollments = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM Enrollments"))['total'];
 $totalSchedules = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM ExamSchedule"))['total'];
+$totalFaculty = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM Faculty"))['total'];
+$totalSuperintendents = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM Superintendents"))['total'];
 
 ?>
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Admin Dashboard</title>
+    <title>Dashboard</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-<link rel="stylesheet" href="../css/style.css">
-<style>
-    .card{
-        margin-top: 30px;
-    }
-</style>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .card {
+            margin-top: 30px;
+        }
+    </style>
 </head>
 <body>
 
-<?php
-include('navbar.php');
-?>
+<?php include('navbar.php'); ?>
+
 <div class="container mt-5">
-    <h2 class="text-center">Admin Dashboard</h2>
+    <h2 class="text-center">Dashboard</h2>
     <div class="row mt-4">
         <!-- Total Users Card -->
         <div class="col-md-4">
@@ -80,6 +83,25 @@ include('navbar.php');
                 </div>
             </div>
         </div>
+        <!-- Total Faculty Card -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Faculty</h5>
+                    <p class="card-text"><?php echo $totalFaculty; ?></p>
+                </div>
+            </div>
+        </div>
+        <!-- Total Superintendents Card -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Superintendents</h5>
+                    <p class="card-text"><?php echo $totalSuperintendents; ?></p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>

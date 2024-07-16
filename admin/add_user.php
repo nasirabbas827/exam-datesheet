@@ -74,8 +74,6 @@ include('admin_navbar.php');
         <div class="form-group">
             <label for="role">Role:</label>
             <select class="form-control" id="role" name="role" required>
-                <option value="student">Student</option>
-                <option value="superintendent">Superintendent</option>
                 <option value="exam_coordinator">Exam Coordinator</option>
             </select>
         </div>

@@ -1,13 +1,12 @@
 <?php
 session_start();
-include('config.php');
+include 'config.php';
 
-// Check if user is logged in, if not, redirect to login page
-if (!isset($_SESSION["id"]) || empty($_SESSION["id"])) {
-    header("location: ../index.php");
+// Check if user is logged in as exam coordinator
+if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "exam_coordinator") {
+    header("Location: login.php");
     exit;
 }
-
 
 // Function to fetch all exam schedules
 function getExamSchedules($conn) {
@@ -95,6 +94,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </table>
         </div>
         <form method="post">
+            <button type="submit" class="btn btn-danger mt-3" name="delete_all_schedules">Delete All Schedules</button>
         </form>
     <?php else: ?>
         <div class="alert alert-info mt-4">

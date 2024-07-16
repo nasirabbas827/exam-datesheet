@@ -6,7 +6,7 @@
   <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav ml-auto">
       <li class="nav-item ">
-        <a class="nav-link" href="add_user.php">Users</a>
+        <a class="nav-link" href="add_superintendent.php">Superintendent</a>
       </li>
       <li class="nav-item ">
         <a class="nav-link" href="add_course.php">Courses</a>
@@ -18,7 +18,10 @@
         <a class="nav-link" href="add_hall.php">Halls</a>
       </li>
       <li class="nav-item ">
-        <a class="nav-link" href="add_exam.php">Exam Schedule</a>
+        <a class="nav-link" href="view_exam_schedule.php">Generate Schedule</a>
+      </li>     
+      <li class="nav-item ">
+        <a class="nav-link" href="view_schedule.php">View Schedule</a>
       </li>     
       <li class="nav-item">
         <a class="nav-link" href="logout.php">Logout</a>

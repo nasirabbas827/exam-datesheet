@@ -11,6 +11,7 @@ if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "exam_coordinator") {
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $course_code = $_POST['course_code'];
     $course_name = $_POST['course_name'];
+    $faculty_id = $_POST['faculty_id']; // Assuming you have a select option for faculty_id
 
     // Check for existing course code
     $sql = "SELECT * FROM Courses WHERE course_code = ?";
@@ -23,9 +24,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         echo "<script>alert('Course code already exists'); window.location.href = 'add_course.php';</script>";
     } else {
         // Insert the new course
-        $sql = "INSERT INTO Courses (course_code, course_name) VALUES (?, ?)";
+        $sql = "INSERT INTO Courses (course_code, course_name, faculty_id) VALUES (?, ?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ss", $course_code, $course_name);
+        $stmt->bind_param("ssi", $course_code, $course_name, $faculty_id);
 
         if ($stmt->execute()) {
             echo "<script>alert('Course added successfully'); window.location.href = 'view_courses.php';</script>";
@@ -64,6 +65,20 @@ include('navbar.php');
         <div class="form-group">
             <label for="course_name">Course Name:</label>
             <input type="text" class="form-control" id="course_name" name="course_name" required>
+        </div>
+        <div class="form-group">
+            <label for="faculty_id">Faculty:</label>
+            <select class="form-control" id="faculty_id" name="faculty_id" required>
+                <?php
+                // Fetch and display all faculty members
+                $sql = "SELECT id, name FROM Faculty";
+                $result = $conn->query($sql);
+
+                while ($row = $result->fetch_assoc()) {
+                    echo "<option value='" . $row['id'] . "'>" . $row['name'] . "</option>";
+                }
+                ?>
+            </select>
         </div>
         <button type="submit" class="btn btn-primary">Add Course</button>
         <a class="btn btn-outline-dark" href="view_courses.php">View Courses</a>

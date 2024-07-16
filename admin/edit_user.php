@@ -81,8 +81,6 @@ include('admin_navbar.php');
         <div class="form-group">
             <label for="role">Role:</label>
             <select class="form-control" id="role" name="role" required>
-                <option value="student" <?php echo $user['role'] == 'student' ? 'selected' : ''; ?>>Student</option>
-                <option value="superintendent" <?php echo $user['role'] == 'superintendent' ? 'selected' : ''; ?>>Superintendent</option>
                 <option value="exam_coordinator" <?php echo $user['role'] == 'exam_coordinator' ? 'selected' : ''; ?>>Exam Coordinator</option>
             </select>
         </div>

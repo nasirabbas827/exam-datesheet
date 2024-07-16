@@ -1,26 +1,59 @@
 <?php
 session_start();
-include('config.php');
-
+include 'config.php';
 if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "exam_coordinator") {
     header("Location: login.php");
     exit;
 }
 
-// Handle delete request
-if (isset($_POST['delete'])) {
-    $schedule_id = $_POST['schedule_id'];
-
-    $sql_delete = "DELETE FROM ExamSchedule WHERE schedule_id = ?";
-    $stmt_delete = $conn->prepare($sql_delete);
-    $stmt_delete->bind_param("i", $schedule_id);
-    if ($stmt_delete->execute()) {
-        echo "<script>alert('Exam schedule deleted successfully'); window.location.href = 'view_exam_schedule.php';</script>";
-    } else {
-        echo "<script>alert('Error deleting exam schedule'); window.location.href = 'view_exam_schedule.php';</script>";
+// Function to fetch non-overlapping courses for a given course
+function getNonOverlappingCourses($course_id, $conn) {
+    $sql = "SELECT course_code
+            FROM Courses
+            WHERE course_id != ?
+            AND NOT EXISTS (
+                SELECT 1 FROM Enrollments e1
+                JOIN Enrollments e2 ON e1.student_id = e2.student_id
+                WHERE e1.course_id = ? AND e2.course_id = Courses.course_id
+            )";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $course_id, $course_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    $non_overlapping_courses = [];
+    while ($row = $result->fetch_assoc()) {
+        $non_overlapping_courses[] = $row['course_code'];
     }
-    $stmt_delete->close();
+    
+    $stmt->close();
+    return implode(', ', $non_overlapping_courses);
 }
+
+// Function to fetch superintendents and their associated courses
+function getSuperintendentCourses($conn) {
+    $sql = "SELECT s.id, f.name as faculty_name, c.course_code
+            FROM superintendents s
+            JOIN Faculty f ON s.faculty_id = f.id
+            JOIN Courses c ON c.faculty_id = f.id";
+    $result = $conn->query($sql);
+    
+    $superintendents = [];
+    while ($row = $result->fetch_assoc()) {
+        $superintendents[$row['id']]['faculty_name'] = $row['faculty_name'];
+        $superintendents[$row['id']]['courses'][] = $row['course_code'];
+    }
+    
+    return $superintendents;
+}
+
+// Fetch all courses
+$sql_courses = "SELECT course_id, course_code FROM Courses";
+$result_courses = $conn->query($sql_courses);
+
+// Fetch superintendents and their courses
+$superintendents = getSuperintendentCourses($conn);
+
 ?>
 
 <!DOCTYPE html>
@@ -34,60 +67,69 @@ if (isset($_POST['delete'])) {
 </head>
 <body>
 
-<?php
-include('navbar.php');
-?>
+<?php include('navbar.php'); ?>
 
-<div class="container mt-5">
-    <h2>All Exam Schedules</h2>
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Schedule ID</th>
-                <th>Course Name</th>
-                <th>Hall Name</th>
-                <th>Superintendent</th>
-                <th>Exam Date</th>
-                <th>Start Time</th>
-                <th>End Time</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php
-            // Fetch all exam schedules with details
-            $sql = "SELECT es.schedule_id, c.course_name, eh.hall_name, u.name AS superintendent_name, es.exam_date, es.start_time, es.end_time
-                    FROM ExamSchedule es
-                    INNER JOIN Courses c ON es.course_id = c.course_id
-                    INNER JOIN ExaminationHalls eh ON es.hall_id = eh.hall_id
-                    INNER JOIN Users u ON es.superintendent_id = u.id";
-            $result = $conn->query($sql);
-
-            if ($result->num_rows > 0) {
-                while ($row = $result->fetch_assoc()) {
-                    echo "<tr>
-                            <td>{$row['schedule_id']}</td>
-                            <td>{$row['course_name']}</td>
-                            <td>{$row['hall_name']}</td>
-                            <td>{$row['superintendent_name']}</td>
-                            <td>{$row['exam_date']}</td>
-                            <td>{$row['start_time']}</td>
-                            <td>{$row['end_time']}</td>
-                            <td>
-                                <form method='post' style='display:inline-block;'>
-                                    <input type='hidden' name='schedule_id' value='{$row['schedule_id']}'>
-                                    <button type='submit' name='delete' class='btn btn-danger btn-sm'>Delete</button>
-                                </form>
-                                <a href='edit_exam_schedule.php?schedule_id={$row['schedule_id']}' class='btn btn-warning btn-sm'>Edit</a>
-                            </td>
-                        </tr>";
+<div class="container mt-5 mb-5">
+    <h2>Non-overlapping Courses</h2>
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Course</th>
+                    <th>List of Non-overlapping Courses</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                while ($row = $result_courses->fetch_assoc()) {
+                    $course_id = $row['course_id'];
+                    $course_code = $row['course_code'];
+                    $non_overlapping_courses = getNonOverlappingCourses($course_id, $conn);
+                    
+                    echo "<tr>";
+                    echo "<td>{$course_code}</td>";
+                    echo "<td>{$non_overlapping_courses}</td>";
+                    echo "</tr>";
                 }
-            } else {
-                echo "<tr><td colspan='8'>No exam schedules found</td></tr>";
-            }
-            ?>
-        </tbody>
-    </table>
+                ?>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Superintendents and Their Courses</h2>
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Superintendent Name</th>
+                    <th>Courses Taught</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                foreach ($superintendents as $superintendent_id => $superintendent) {
+                    echo "<tr>";
+                    echo "<td>{$superintendent['faculty_name']}</td>";
+                    echo "<td>" . implode(', ', $superintendent['courses']) . "</td>";
+                    echo "</tr>";
+                }
+                ?>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="container mt-3">
+        <h1>Calculate Exam Schedule</h1>
+
+        <form action="calculate_schedule.php" method="POST">
+            <div class="form-group">
+                <label for="slots_per_day">Number of Slots per Day:</label>
+                <input type="number" id="slots_per_day" name="slots_per_day" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Calculate Exam Schedule</button>
+        </form>
+
+    </div>
 </div>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>

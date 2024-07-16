@@ -12,11 +12,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['course_id'])) {
     $course_id = $_POST['course_id'];
     $course_code = $_POST['course_code'];
     $course_name = $_POST['course_name'];
+    $faculty_id = $_POST['faculty_id']; // Added to handle faculty update
 
-    // Update the course details
-    $sql = "UPDATE Courses SET course_code=?, course_name=? WHERE course_id=?";
+    // Update the course details including faculty_id
+    $sql = "UPDATE Courses SET course_code=?, course_name=?, faculty_id=? WHERE course_id=?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssi", $course_code, $course_name, $course_id);
+    $stmt->bind_param("ssii", $course_code, $course_name, $faculty_id, $course_id);
 
     if ($stmt->execute()) {
         echo "<script>alert('Course updated successfully'); window.location.href = 'view_courses.php';</script>";
@@ -29,7 +30,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['course_id'])) {
 // Fetch course details
 if (isset($_GET['course_id'])) {
     $course_id = $_GET['course_id'];
-    $sql = "SELECT * FROM Courses WHERE course_id = ?";
+    $sql = "SELECT c.course_id, c.course_code, c.course_name, c.faculty_id, f.name AS faculty_name
+            FROM Courses c
+            LEFT JOIN Faculty f ON c.faculty_id = f.id
+            WHERE c.course_id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $course_id);
     $stmt->execute();
@@ -68,6 +72,21 @@ include('navbar.php');
         <div class="form-group">
             <label for="course_name">Course Name:</label>
             <input type="text" class="form-control" id="course_name" name="course_name" value="<?php echo $course['course_name']; ?>" required>
+        </div>
+        <div class="form-group">
+            <label for="faculty_id">Faculty:</label>
+            <select class="form-control" id="faculty_id" name="faculty_id" required>
+                <?php
+                // Fetch and display all faculty members
+                $sql = "SELECT id, name FROM Faculty";
+                $result = $conn->query($sql);
+
+                while ($row = $result->fetch_assoc()) {
+                    $selected = ($row['id'] == $course['faculty_id']) ? 'selected' : '';
+                    echo "<option value='" . $row['id'] . "' $selected>" . $row['name'] . "</option>";
+                }
+                ?>
+            </select>
         </div>
         <button type="submit" class="btn btn-primary">Update Course</button>
     </form>

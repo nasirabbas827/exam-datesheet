@@ -9,13 +9,9 @@
             if (isset($_SESSION["id"]) && !empty($_SESSION["id"])) {
                 echo '<li class="nav-item"><a class="nav-link" href="home.php">Home</a></li>';
                 echo '<li class="nav-item"><a class="nav-link" href="update_profile.php">Update Profile</a></li>';
-                echo '<li class="nav-item"><a class="nav-link" href="order_history.php">My Orders</a></li>';
-                echo '<li class="nav-item"><a class="nav-link" href="view_offers.php">View Offers</a></li>';
-                echo '<li class="nav-item"><a class="nav-link" href="contact_support.php">Customer Support</a></li>';
-                echo '<li class="nav-item"><a class="nav-link" href="view_messages.php">View Messages</a></li>';
-                echo '<li class="nav-item"><a class="nav-link" href="logout.php">Logout</a></li>';
             } else {
-                echo '<li class="nav-item"><a class="nav-link" href="login.php">Login</a></li>';
+                echo '<li class="nav-item"><a class="nav-link" href="login.php">Exam Coordinator Login</a></li>';
+                echo '<li class="nav-item"><a class="nav-link" href="supr_login.php">Superintendent Login</a></li>';
                 echo '<li class="nav-item"><a class="nav-link" href="./admin/admin_login.php">Admin Login</a></li>';
             }
             ?>

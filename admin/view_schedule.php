@@ -2,12 +2,11 @@
 session_start();
 include('config.php');
 
-// Check if user is logged in, if not, redirect to login page
-if (!isset($_SESSION["id"]) || empty($_SESSION["id"])) {
-    header("location: ../index.php");
+// Check if the user is logged in as an admin
+if (!isset($_SESSION["usertype"]) || $_SESSION["usertype"] !== "admin") {
+    header("Location: admin_login.php");
     exit;
 }
-
 
 // Function to fetch all exam schedules
 function getExamSchedules($conn) {
@@ -66,7 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <body>
 
-<?php include('navbar.php'); ?>
+<?php include('admin_navbar.php'); ?>
 
 <div class="container mt-5 mb-5">
     <h2>View Exam Schedule</h2>

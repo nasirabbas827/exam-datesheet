@@ -10,15 +10,43 @@ if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "exam_coordinator") {
 // Handle delete course request
 if (isset($_GET['delete'])) {
     $course_id = $_GET['delete'];
-    $sql = "DELETE FROM Courses WHERE course_id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $course_id);
-    if ($stmt->execute()) {
-        echo "<script>alert('Course deleted successfully'); window.location.href = 'view_courses.php';</script>";
-    } else {
-        echo "<script>alert('Error deleting course'); window.location.href = 'view_courses.php';</script>";
+
+    // Delete course
+    $delete_course_sql = "DELETE FROM Courses WHERE course_id = ?";
+    $delete_course_stmt = $conn->prepare($delete_course_sql);
+    $delete_course_stmt->bind_param("i", $course_id);
+    
+    // Delete enrollments for the course
+    $delete_enrollments_sql = "DELETE FROM Enrollments WHERE course_id = ?";
+    $delete_enrollments_stmt = $conn->prepare($delete_enrollments_sql);
+    $delete_enrollments_stmt->bind_param("i", $course_id);
+
+    // Execute deletion
+    $conn->autocommit(FALSE); // Start transaction
+    $delete_success = true;
+
+    // Delete course
+    if (!$delete_course_stmt->execute()) {
+        $delete_success = false;
     }
-    $stmt->close();
+
+    // Delete enrollments
+    if (!$delete_enrollments_stmt->execute()) {
+        $delete_success = false;
+    }
+
+    // Commit or rollback transaction
+    if ($delete_success) {
+        $conn->commit();
+        echo "<script>alert('Course and associated enrollments deleted successfully'); window.location.href = 'view_courses.php';</script>";
+    } else {
+        $conn->rollback();
+        echo "<script>alert('Error deleting course and enrollments'); window.location.href = 'view_courses.php';</script>";
+    }
+
+    // Close statements
+    $delete_course_stmt->close();
+    $delete_enrollments_stmt->close();
 }
 ?>
 
@@ -33,9 +61,7 @@ if (isset($_GET['delete'])) {
 </head>
 <body>
 
-<?php
-include('navbar.php');
-?>
+<?php include('navbar.php'); ?>
 
 <div class="container mt-5">
     <h2>All Courses</h2>
@@ -46,21 +72,25 @@ include('navbar.php');
                 <th>ID</th>
                 <th>Course Code</th>
                 <th>Course Name</th>
+                <th>Faculty</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             <?php
-            $sql = "SELECT * FROM Courses";
+            $sql = "SELECT c.course_id, c.course_code, c.course_name, f.name AS faculty_name
+                    FROM Courses c
+                    LEFT JOIN Faculty f ON c.faculty_id = f.id";
             $result = $conn->query($sql);
             while ($row = $result->fetch_assoc()) {
                 echo "<tr>
                         <td>{$row['course_id']}</td>
                         <td>{$row['course_code']}</td>
                         <td>{$row['course_name']}</td>
+                        <td>{$row['faculty_name']}</td>
                         <td>
                             <a href='edit_course.php?course_id={$row['course_id']}' class='btn btn-primary btn-sm'>Edit</a>
-                            <a href='view_courses.php?delete={$row['course_id']}' class='btn btn-danger btn-sm' onclick=\"return confirm('Are you sure you want to delete this course?');\">Delete</a>
+                            <a href='view_courses.php?delete={$row['course_id']}' class='btn btn-danger btn-sm' onclick=\"return confirm('Are you sure you want to delete this course and its enrollments?');\">Delete</a>
                         </td>
                     </tr>";
             }
