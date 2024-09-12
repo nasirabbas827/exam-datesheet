@@ -8,7 +8,6 @@ if (!isset($_SESSION["id"]) || empty($_SESSION["id"])) {
     exit;
 }
 
-
 // Function to fetch all exam schedules
 function getExamSchedules($conn) {
     $sql = "SELECT id, day_number, courses, superintendent, hall_name
@@ -21,6 +20,19 @@ function getExamSchedules($conn) {
     }
     
     return $schedules;
+}
+
+// Function to fetch all courses with their names
+function getCourses($conn) {
+    $sql = "SELECT course_id, course_name FROM Courses";
+    $result = $conn->query($sql);
+    
+    $courses = [];
+    while ($row = $result->fetch_assoc()) {
+        $courses[$row['course_id']] = $row['course_name'];
+    }
+    
+    return $courses;
 }
 
 // Function to delete an exam schedule by schedule_id
@@ -40,6 +52,9 @@ function deleteAllExamSchedules($conn) {
 
 // Fetch all exam schedules
 $schedules = getExamSchedules($conn);
+
+// Fetch all courses
+$courses = getCourses($conn);
 
 // Handle delete schedule request
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -85,17 +100,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <?php foreach ($schedules as $schedule): ?>
                         <tr>
                             <td><?php echo $schedule['day_number']; ?></td>
-                            <td><?php echo $schedule['courses']; ?></td>
+                            <td>
+                                <?php
+                                $course_ids = explode(', ', $schedule['courses']);
+                                $course_names = array_map(function($id) use ($courses) {
+                                    return isset($courses[$id]) ? $courses[$id] : 'Unknown Course';
+                                }, $course_ids);
+                                echo implode(', ', $course_names);
+                                ?>
+                            </td>
                             <td><?php echo $schedule['superintendent']; ?></td>
                             <td><?php echo $schedule['hall_name']; ?></td>
-                            
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
-        <form method="post">
-        </form>
     <?php else: ?>
         <div class="alert alert-info mt-4">
             No exam schedules found.

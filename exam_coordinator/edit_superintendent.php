@@ -13,17 +13,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email'];
     $password = $_POST['password']; // Remember to hash this in a real application
 
-    // Update the superintendent details
-    $sql = "UPDATE Superintendents SET email=?, password=? WHERE id=?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssi", $email, $password, $superintendent_id);
+    // Check if email is already in use by another superintendent
+    $check_email_sql = "SELECT * FROM Superintendents WHERE email = ? AND id != ?";
+    $check_email_stmt = $conn->prepare($check_email_sql);
+    $check_email_stmt->bind_param("si", $email, $superintendent_id);
+    $check_email_stmt->execute();
+    $check_email_result = $check_email_stmt->get_result();
 
-    if ($stmt->execute()) {
-        echo "<script>alert('Superintendent updated successfully'); window.location.href = 'view_superintendents.php';</script>";
+    if ($check_email_result->num_rows > 0) {
+        echo "<script>alert('This email is already in use by another superintendent'); window.location.href = 'edit_superintendent.php?id={$superintendent_id}';</script>";
     } else {
-        echo "<script>alert('Error updating superintendent'); window.location.href = 'edit_superintendent.php?id={$superintendent_id}';</script>";
+        // Update the superintendent details
+        $sql = "UPDATE Superintendents SET email=?, password=? WHERE id=?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ssi", $email, $password, $superintendent_id);
+
+        if ($stmt->execute()) {
+            echo "<script>alert('Superintendent updated successfully'); window.location.href = 'view_superintendents.php';</script>";
+        } else {
+            echo "<script>alert('Error updating superintendent'); window.location.href = 'edit_superintendent.php?id={$superintendent_id}';</script>";
+        }
+        $stmt->close();
     }
-    $stmt->close();
+
+    $check_email_stmt->close();
 }
 
 // Fetch superintendent details

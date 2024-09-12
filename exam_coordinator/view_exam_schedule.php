@@ -1,6 +1,7 @@
 <?php
 session_start();
 include 'config.php';
+
 if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "exam_coordinator") {
     header("Location: login.php");
     exit;
@@ -8,24 +9,25 @@ if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "exam_coordinator") {
 
 // Function to fetch non-overlapping courses for a given course
 function getNonOverlappingCourses($course_id, $conn) {
-    $sql = "SELECT course_code
-            FROM Courses
-            WHERE course_id != ?
+    $sql = "SELECT c.course_code
+            FROM Courses c
+            WHERE c.course_id != ?
             AND NOT EXISTS (
-                SELECT 1 FROM Enrollments e1
+                SELECT 1 
+                FROM Enrollments e1
                 JOIN Enrollments e2 ON e1.student_id = e2.student_id
-                WHERE e1.course_id = ? AND e2.course_id = Courses.course_id
+                WHERE e1.course_id = ? AND e2.course_id = c.course_id
             )";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("ii", $course_id, $course_id);
     $stmt->execute();
     $result = $stmt->get_result();
-    
+
     $non_overlapping_courses = [];
     while ($row = $result->fetch_assoc()) {
         $non_overlapping_courses[] = $row['course_code'];
     }
-    
+
     $stmt->close();
     return implode(', ', $non_overlapping_courses);
 }
@@ -37,13 +39,13 @@ function getSuperintendentCourses($conn) {
             JOIN Faculty f ON s.faculty_id = f.id
             JOIN Courses c ON c.faculty_id = f.id";
     $result = $conn->query($sql);
-    
+
     $superintendents = [];
     while ($row = $result->fetch_assoc()) {
         $superintendents[$row['id']]['faculty_name'] = $row['faculty_name'];
         $superintendents[$row['id']]['courses'][] = $row['course_code'];
     }
-    
+
     return $superintendents;
 }
 
@@ -53,7 +55,6 @@ $result_courses = $conn->query($sql_courses);
 
 // Fetch superintendents and their courses
 $superintendents = getSuperintendentCourses($conn);
-
 ?>
 
 <!DOCTYPE html>

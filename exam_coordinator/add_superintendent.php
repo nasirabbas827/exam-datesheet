@@ -11,7 +11,7 @@ if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "exam_coordinator") {
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $faculty_id = $_POST['faculty_id'];
     $email = $_POST['email'];
-    $password = $_POST['password']; // Remember to hash this in a real application
+    $password = $_POST['password']; 
 
     // Check if faculty already assigned as superintendent
     $check_sql = "SELECT * FROM Superintendents WHERE faculty_id = ?";
@@ -23,20 +23,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($check_result->num_rows > 0) {
         echo "<script>alert('This faculty member is already assigned as a superintendent'); window.location.href = '".$_SERVER['PHP_SELF']."';</script>";
     } else {
-        // Insert the new superintendent
-        $insert_sql = "INSERT INTO Superintendents (faculty_id, email, password) VALUES (?, ?, ?)";
-        $insert_stmt = $conn->prepare($insert_sql);
-        $insert_stmt->bind_param("iss", $faculty_id, $email, $password);
+        // Check if email already exists
+        $email_check_sql = "SELECT * FROM Superintendents WHERE email = ?";
+        $email_check_stmt = $conn->prepare($email_check_sql);
+        $email_check_stmt->bind_param("s", $email);
+        $email_check_stmt->execute();
+        $email_check_result = $email_check_stmt->get_result();
 
-        if ($insert_stmt->execute()) {
-            echo "<script>alert('Superintendent added successfully'); window.location.href = 'view_superintendents.php';</script>";
+        if ($email_check_result->num_rows > 0) {
+            echo "<script>alert('This email is already in use by another superintendent'); window.location.href = '".$_SERVER['PHP_SELF']."';</script>";
         } else {
-            echo "<script>alert('Error adding superintendent'); window.location.href = '".$_SERVER['PHP_SELF']."';</script>";
+            // Insert the new superintendent
+            $insert_sql = "INSERT INTO Superintendents (faculty_id, email, password) VALUES (?, ?, ?)";
+            $insert_stmt = $conn->prepare($insert_sql);
+            $insert_stmt->bind_param("iss", $faculty_id, $email, $password);
+
+            if ($insert_stmt->execute()) {
+                echo "<script>alert('Superintendent added successfully'); window.location.href = 'view_superintendents.php';</script>";
+            } else {
+                echo "<script>alert('Error adding superintendent'); window.location.href = '".$_SERVER['PHP_SELF']."';</script>";
+            }
+
+            $insert_stmt->close();
         }
+
+        $email_check_stmt->close();
     }
 
     $check_stmt->close();
-    $insert_stmt->close();
 }
 ?>
 

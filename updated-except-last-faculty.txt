@@ -169,7 +169,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $schedule_exists = true;
         $message = "Exam schedule already exists. Please delete the existing schedule before generating a new one.";
     } else {
-        // Fetch all courses with their enrollments
+       // Fetch all courses with their enrollments
         $sql_courses = "SELECT Courses.course_id, Courses.course_code, COUNT(Enrollments.student_id) AS enrollment
                         FROM Courses
                         LEFT JOIN Enrollments ON Courses.course_id = Enrollments.course_id

@@ -20,6 +20,16 @@ if (isset($_GET['delete'])) {
     }
     $stmt->close();
 }
+
+// Handle search request
+$search_query = isset($_GET['search']) ? '%' . $_GET['search'] . '%' : '%';
+
+// Fetch all examination halls with search functionality
+$sql = "SELECT * FROM ExaminationHalls WHERE hall_name LIKE ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("s", $search_query);
+$stmt->execute();
+$result = $stmt->get_result();
 ?>
 
 <!DOCTYPE html>
@@ -39,7 +49,18 @@ include('navbar.php');
 
 <div class="container mt-5">
     <h2>All Examination Halls</h2>
-    <a href="add_hall.php" class="btn btn-success mb-3">Add New Hall</a>
+
+    <!-- Search Form -->
+    <form method="get" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="search" class="form-control" placeholder="Search by hall name" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="submit">Search</button>
+            </div>
+        </div>
+    </form>
+
+    <a href="add_hall.php" class="btn btn-success mb-3 float-right">Add New Hall</a>
     <table class="table table-bordered">
         <thead>
             <tr>
@@ -51,10 +72,6 @@ include('navbar.php');
         </thead>
         <tbody>
             <?php
-            // Fetch all examination halls
-            $sql = "SELECT * FROM ExaminationHalls";
-            $result = $conn->query($sql);
-
             if ($result->num_rows > 0) {
                 while ($row = $result->fetch_assoc()) {
                     echo "<tr>

@@ -48,6 +48,25 @@ if (isset($_GET['delete'])) {
     $delete_course_stmt->close();
     $delete_enrollments_stmt->close();
 }
+
+// Handle search request
+$search_query = isset($_GET['search']) ? $_GET['search'] : '';
+
+// Function to fetch courses with search functionality
+function fetchCourses($conn, $search_query) {
+    $sql = "SELECT c.course_id, c.course_code, c.course_name, f.name AS faculty_name
+            FROM Courses c
+            LEFT JOIN Faculty f ON c.faculty_id = f.id
+            WHERE c.course_name LIKE ?";
+    $stmt = $conn->prepare($sql);
+    $search_query = '%' . $search_query . '%';
+    $stmt->bind_param("s", $search_query);
+    $stmt->execute();
+    return $stmt->get_result();
+}
+
+// Fetch all courses with search functionality
+$result = fetchCourses($conn, $search_query);
 ?>
 
 <!DOCTYPE html>
@@ -65,7 +84,18 @@ if (isset($_GET['delete'])) {
 
 <div class="container mt-5">
     <h2>All Courses</h2>
-    <a href="add_course.php" class="btn btn-success mb-3">Add New Course</a>
+
+    <!-- Search Form -->
+    <form method="get" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="search" class="form-control" placeholder="Search by course name" value="<?php echo htmlspecialchars($search_query); ?>">
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="submit">Search</button>
+            </div>
+        </div>
+    </form>
+
+    <a href="add_course.php" class="btn btn-success mb-3 float-right">Add New Course</a>
     <table class="table table-bordered">
         <thead>
             <tr>
@@ -78,21 +108,21 @@ if (isset($_GET['delete'])) {
         </thead>
         <tbody>
             <?php
-            $sql = "SELECT c.course_id, c.course_code, c.course_name, f.name AS faculty_name
-                    FROM Courses c
-                    LEFT JOIN Faculty f ON c.faculty_id = f.id";
-            $result = $conn->query($sql);
-            while ($row = $result->fetch_assoc()) {
-                echo "<tr>
-                        <td>{$row['course_id']}</td>
-                        <td>{$row['course_code']}</td>
-                        <td>{$row['course_name']}</td>
-                        <td>{$row['faculty_name']}</td>
-                        <td>
-                            <a href='edit_course.php?course_id={$row['course_id']}' class='btn btn-primary btn-sm'>Edit</a>
-                            <a href='view_courses.php?delete={$row['course_id']}' class='btn btn-danger btn-sm' onclick=\"return confirm('Are you sure you want to delete this course and its enrollments?');\">Delete</a>
-                        </td>
-                    </tr>";
+            if ($result->num_rows > 0) {
+                while ($row = $result->fetch_assoc()) {
+                    echo "<tr>
+                            <td>{$row['course_id']}</td>
+                            <td>{$row['course_code']}</td>
+                            <td>{$row['course_name']}</td>
+                            <td>{$row['faculty_name']}</td>
+                            <td>
+                                <a href='edit_course.php?course_id={$row['course_id']}' class='btn btn-primary btn-sm'>Edit</a>
+                                <a href='view_courses.php?delete={$row['course_id']}' class='btn btn-danger btn-sm' onclick=\"return confirm('Are you sure you want to delete this course and its enrollments?');\">Delete</a>
+                            </td>
+                        </tr>";
+                }
+            } else {
+                echo "<tr><td colspan='5'>No courses found</td></tr>";
             }
             ?>
         </tbody>

@@ -39,24 +39,32 @@ $result = $conn->query($sql);
                     <th>Course ID</th>
                     <th>Course Name</th>
                     <th>Student ID</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
-                <?php
-                if ($result->num_rows > 0) {
-                    while ($row = $result->fetch_assoc()) {
-                        echo "<tr>";
-                        echo "<td>{$row['enrollment_id']}</td>";
-                        echo "<td>{$row['course_id']}</td>";
-                        echo "<td>{$row['course_name']}</td>";
-                        echo "<td>{$row['student_id']}</td>";
-                        echo "</tr>";
-                    }
-                } else {
-                    echo "<tr><td colspan='4'>No enrollments found</td></tr>";
-                }
-                ?>
-            </tbody>
+    <?php
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            echo "<tr>";
+            echo "<td>{$row['enrollment_id']}</td>";
+            echo "<td>{$row['course_id']}</td>";
+            echo "<td>{$row['course_name']}</td>";
+            echo "<td>{$row['student_id']}</td>";
+            echo "<td>
+                    <form method='POST' action='delete_enrollment.php' onsubmit='return confirm(\"Are you sure you want to delete this enrollment?\");'>
+                        <input type='hidden' name='enrollment_id' value='{$row['enrollment_id']}'>
+                        <button type='submit' class='btn btn-danger'>Delete</button>
+                    </form>
+                  </td>";
+            echo "</tr>";
+        }
+    } else {
+        echo "<tr><td colspan='5'>No enrollments found</td></tr>";
+    }
+    ?>
+</tbody>
+
         </table>
     </div>
     <a class="btn btn-primary" href="update_enrollment.php">Update Enrollment</a>

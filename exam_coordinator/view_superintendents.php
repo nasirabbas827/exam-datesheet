@@ -7,13 +7,17 @@ if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "exam_coordinator") {
     exit;
 }
 
-// Function to fetch all superintendents
-function fetchSuperintendents($conn) {
+// Function to fetch all superintendents with search functionality
+function fetchSuperintendents($conn, $search_query) {
     $sql = "SELECT s.id, f.name AS faculty_name, s.email, s.password 
             FROM Superintendents s
-            INNER JOIN Faculty f ON s.faculty_id = f.id";
-    $result = $conn->query($sql);
-    return $result;
+            INNER JOIN Faculty f ON s.faculty_id = f.id
+            WHERE f.name LIKE ?";
+    $stmt = $conn->prepare($sql);
+    $search_query = '%' . $search_query . '%';
+    $stmt->bind_param("s", $search_query);
+    $stmt->execute();
+    return $stmt->get_result();
 }
 
 // Function to handle delete superintendent request
@@ -33,9 +37,11 @@ if (isset($_GET['delete'])) {
     exit;
 }
 
-// Fetch all superintendents
-$result = fetchSuperintendents($conn);
+// Handle search request
+$search_query = isset($_GET['search']) ? $_GET['search'] : '';
 
+// Fetch all superintendents with search functionality
+$result = fetchSuperintendents($conn, $search_query);
 ?>
 
 <!DOCTYPE html>
@@ -53,7 +59,20 @@ $result = fetchSuperintendents($conn);
 
 <div class="container mt-5">
     <h2>View Superintendents</h2>
+
+    <!-- Search Form -->
+    <form method="get" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="search" class="form-control" placeholder="Search by faculty name" value="<?php echo htmlspecialchars($search_query); ?>">
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="submit">Search</button>
+            </div>
+        </div>
+    </form>
+
     <table class="table table-bordered">
+    <a href="add_superintendent.php" class="btn btn-success mb-3 float-right">Add New Superintendent</a>
+
         <thead>
             <tr>
                 <th>ID</th>
