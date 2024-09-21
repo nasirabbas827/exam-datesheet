@@ -35,17 +35,22 @@ function getNonOverlappingCourses($course_id, $conn) {
 // Function to fetch superintendents and their associated courses
 function getSuperintendentCourses($conn) {
     $sql = "SELECT s.id, f.name as faculty_name, c.course_code
-            FROM Superintendents s
+            FROM superintendents s
             JOIN Faculty f ON s.faculty_id = f.id
-            JOIN Courses c ON c.faculty_id = f.id";
+            LEFT JOIN Courses c ON c.faculty_id = f.id"; // LEFT JOIN allows fetching faculty without courses
     $result = $conn->query($sql);
-    
+
     $superintendents = [];
     while ($row = $result->fetch_assoc()) {
-        $superintendents[$row['id']]['faculty_name'] = $row['faculty_name'];
-        $superintendents[$row['id']]['courses'][] = $row['course_code'];
+        if (!isset($superintendents[$row['id']])) {
+            $superintendents[$row['id']]['faculty_name'] = $row['faculty_name'];
+            $superintendents[$row['id']]['courses'] = []; // Initialize empty array for courses
+        }
+        if ($row['course_code']) {
+            $superintendents[$row['id']]['courses'][] = $row['course_code']; // Store taught courses
+        }
     }
-    
+
     return $superintendents;
 }
 
@@ -64,18 +69,18 @@ function getExamHalls($conn) {
     return $halls;
 }
 
-function calculateExamSchedule($slots_per_day, $non_overlapping_courses, $superintendents, $halls) {
+// Function to calculate exam schedule
+function calculateExamSchedule($slots_per_day, $non_overlapping_courses, $superintendents, $halls, $conn) {
     // Initialize variables
     $schedule = [];
     $used_courses = [];
     $day_count = 0;
-    $day_courses = []; // Array to hold courses scheduled for each day
+    $day_courses = [];
 
     // Group courses by non-overlapping constraints
     foreach ($non_overlapping_courses as $course_id => $non_overlap) {
-        // Check if this course has already been scheduled
         if (in_array($course_id, $used_courses)) {
-            continue;
+            continue; // Skip if already scheduled
         }
 
         // Start a new day if needed
@@ -83,10 +88,8 @@ function calculateExamSchedule($slots_per_day, $non_overlapping_courses, $superi
             $day_courses[$day_count] = [];
         }
 
-        // Try to schedule this course in the current day
         $can_schedule = true;
         foreach ($day_courses[$day_count] as $scheduled_course_id) {
-            // If this course overlaps with any scheduled course, it can't be scheduled on this day
             if (!in_array($scheduled_course_id, $non_overlapping_courses[$course_id])) {
                 $can_schedule = false;
                 break;
@@ -94,11 +97,9 @@ function calculateExamSchedule($slots_per_day, $non_overlapping_courses, $superi
         }
 
         if ($can_schedule) {
-            // Assign this course to the current day
             $day_courses[$day_count][] = $course_id;
             $used_courses[] = $course_id;
         } else {
-            // Move to the next day and try again
             $day_count++;
             $day_courses[$day_count] = [$course_id];
             $used_courses[] = $course_id;
@@ -107,17 +108,16 @@ function calculateExamSchedule($slots_per_day, $non_overlapping_courses, $superi
 
     // Assign each day's courses to a superintendent and an exam hall
     foreach ($day_courses as $day => $courses) {
-        // Find a suitable superintendent and hall for the day
         $assigned_superintendent = "No superintendent assigned";
         $assigned_hall = "No suitable hall found";
 
-        // Find a superintendent that is not teaching any of the scheduled courses
+        // Filter superintendents who didn't teach any of the day's courses
         $available_superintendents = [];
         foreach ($superintendents as $superintendent_id => $superintendent) {
             $teaches_overlap = false;
             foreach ($courses as $course_id) {
                 if (in_array($course_id, $superintendent['courses'])) {
-                    $teaches_overlap = true;
+                    $teaches_overlap = true; // This superintendent taught this course
                     break;
                 }
             }
@@ -132,15 +132,20 @@ function calculateExamSchedule($slots_per_day, $non_overlapping_courses, $superi
             $assigned_superintendent = $random_superintendent['faculty_name'];
         }
 
-        // Assign a hall with sufficient capacity
+        // Assign a hall with sufficient capacity (greater than or equal to total enrollments for the day)
         foreach ($halls as $hall) {
-            if ($hall['capacity'] >= count($courses)) {
+            $total_enrollment = 0;
+            foreach ($courses as $course_id) {
+                $total_enrollment += getEnrollmentCount($course_id, $conn); // Pass $conn to the helper function
+            }
+
+            if ($hall['capacity'] >= $total_enrollment) {
                 $assigned_hall = $hall['hall_name'];
                 break;
             }
         }
 
-        // Place the courses, superintendent, and hall in the schedule for the current day
+        // Store the schedule for the current day
         $schedule[$day]['courses'] = $courses;
         $schedule[$day]['superintendent'] = $assigned_superintendent;
         $schedule[$day]['hall_name'] = $assigned_hall;
@@ -149,6 +154,18 @@ function calculateExamSchedule($slots_per_day, $non_overlapping_courses, $superi
     return $schedule;
 }
 
+// Helper function to get enrollment count for a specific course
+function getEnrollmentCount($course_id, $conn) {
+    $sql = "SELECT COUNT(student_id) as total_enrollment FROM Enrollments WHERE course_id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $course_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $stmt->close();
+
+    return $row['total_enrollment'];
+}
 
 // Initialize variables
 $slots_per_day = isset($_POST['slots_per_day']) ? intval($_POST['slots_per_day']) : 0;
@@ -158,6 +175,7 @@ $halls = [];
 $schedule = [];
 $schedule_exists = false;
 $message = "";
+$course_enrollments = [];
 
 // Process form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -186,11 +204,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         while ($row = $result_courses->fetch_assoc()) {
             $course_id = $row['course_id'];
             $course_code = $row['course_code'];
+            $course_enrollments[$course_id] = $row['enrollment']; // Store the number of enrollments for each course
             $non_overlapping_courses[$course_id] = getNonOverlappingCourses($course_id, $conn);
         }
 
         // Calculate exam schedule
-        $schedule = calculateExamSchedule($slots_per_day, $non_overlapping_courses, $superintendents, $halls);
+        $schedule = calculateExamSchedule($slots_per_day, $non_overlapping_courses, $superintendents, $halls, $conn);
 
         // Insert schedule into database
         foreach ($schedule as $day => $data) {
@@ -227,13 +246,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <div class="container mt-5 mb-5">
     <h2>Exam Schedule</h2>
-    <form method="post">
-        <div class="form-group">
-            <label for="slots_per_day">Number of Slots per Day:</label>
-            <input type="number" class="form-control" id="slots_per_day" name="slots_per_day" value="<?php echo $slots_per_day; ?>" required readonly>
-        </div>
-        <button type="submit" class="btn btn-primary">Generate Schedule and Save to Database</button>
-    </form>
+    
 
     <?php if (!empty($message)): ?>
         <div class="alert alert-info mt-4">
@@ -272,3 +285,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
+

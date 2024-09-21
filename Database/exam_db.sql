@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 16, 2024 at 12:14 PM
+-- Generation Time: Sep 21, 2024 at 09:34 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -58,10 +58,10 @@ CREATE TABLE `courses` (
 --
 
 INSERT INTO `courses` (`course_id`, `course_code`, `course_name`, `faculty_id`) VALUES
-(15, 'CS201', 'CS201', 1),
-(16, 'CS301', 'CS301', 2),
-(17, 'CS304', 'CS304', 3),
-(18, 'CS401', 'CS401', 2);
+(20, 'CS201', 'CS201', 7),
+(21, 'CS301', 'CS301', 7),
+(22, 'CS401', 'CS401', 10),
+(24, 'CS609', 'CS609', 12);
 
 -- --------------------------------------------------------
 
@@ -81,21 +81,17 @@ CREATE TABLE `enrollments` (
 --
 
 INSERT INTO `enrollments` (`enrollment_id`, `course_id`, `student_id`, `enroll_date`) VALUES
-(25, 15, 'BC230400535', '2024-07-16 10:10:04'),
-(26, 15, 'BC220400424', '2024-07-16 10:10:26'),
-(27, 15, 'BC210402444', '2024-07-16 10:10:26'),
-(28, 16, 'BC210209424', '2024-07-16 10:11:11'),
-(29, 16, 'BC220201625', '2024-07-16 10:11:11'),
-(30, 16, 'BC220400551', '2024-07-16 10:11:11'),
-(31, 17, 'BC210402120', '2024-07-16 10:11:45'),
-(32, 17, 'BC210402328', '2024-07-16 10:11:45'),
-(33, 17, 'BC210402444', '2024-07-16 10:11:45'),
-(34, 18, 'BC210402328', '2024-07-16 10:12:25'),
-(35, 18, 'BC210402444', '2024-07-16 10:12:25'),
-(36, 18, 'BC210402488', '2024-07-16 10:12:25'),
-(37, 18, 'BC210402561', '2024-07-16 10:12:25'),
-(38, 18, 'BC210402613', '2024-07-16 10:12:25'),
-(39, 18, 'BC210402688', '2024-07-16 10:12:25');
+(70, 20, 'BC220400424', '2024-09-12 09:10:22'),
+(71, 20, 'BC230400535', '2024-09-12 09:10:22'),
+(72, 20, 'BC210402444', '2024-09-12 09:10:22'),
+(73, 21, 'BC210209424', '2024-09-12 09:10:36'),
+(74, 21, 'BC220201625', '2024-09-12 09:10:36'),
+(79, 22, 'BC210402328', '2024-09-12 09:11:10'),
+(80, 22, 'BC210402444', '2024-09-12 09:11:10'),
+(81, 22, 'BC210402488', '2024-09-12 09:11:10'),
+(82, 22, 'BC210402561', '2024-09-12 09:11:10'),
+(83, 22, 'BC210402613', '2024-09-12 09:11:10'),
+(84, 22, 'BC210402688', '2024-09-12 09:11:10');
 
 -- --------------------------------------------------------
 
@@ -114,8 +110,8 @@ CREATE TABLE `examinationhalls` (
 --
 
 INSERT INTO `examinationhalls` (`hall_id`, `hall_name`, `capacity`) VALUES
-(1, 'Jampur Campus Haal', 50),
-(2, 'DgK Hall', 20);
+(4, 'Jampur Hall', 50),
+(5, 'DgK Hall', 500);
 
 -- --------------------------------------------------------
 
@@ -136,10 +132,10 @@ CREATE TABLE `examschedule` (
 --
 
 INSERT INTO `examschedule` (`id`, `day_number`, `courses`, `superintendent`, `hall_name`) VALUES
-(84, 1, 'CS301', 'Dr. John Smith', 'Jampur Campus Haal'),
-(85, 2, 'CS201, CS304, CS401', 'Dr. Jane Doe', 'Jampur Campus Haal'),
-(86, 3, 'CS301', 'Dr. John Smith', 'Jampur Campus Haal'),
-(87, 4, 'CS301', 'Dr. John Smith', 'Jampur Campus Haal');
+(412, 1, '20', 'CS304 Teacher', 'Jampur Hall'),
+(413, 2, '21', 'CS609 Teacher', 'Jampur Hall'),
+(414, 3, '22', 'CS304 Teacher', 'Jampur Hall'),
+(415, 4, '24', 'CS608 Teacher', 'Jampur Hall');
 
 -- --------------------------------------------------------
 
@@ -157,11 +153,11 @@ CREATE TABLE `faculty` (
 --
 
 INSERT INTO `faculty` (`id`, `name`) VALUES
-(1, 'Dr. John Smith'),
-(2, 'Dr. Jane Doe'),
-(3, 'Prof. Alan Turing'),
-(4, 'Prof. Grace Hopper'),
-(5, 'Dr. Ada Lovelace');
+(7, 'CS201 and CS301 Teacher'),
+(9, 'CS304 Teacher'),
+(10, 'CS401 Teacher'),
+(11, 'CS608 Teacher'),
+(12, 'CS609 Teacher');
 
 -- --------------------------------------------------------
 
@@ -181,9 +177,11 @@ CREATE TABLE `superintendents` (
 --
 
 INSERT INTO `superintendents` (`id`, `faculty_id`, `email`, `password`) VALUES
-(1, 1, 'sup@gmail.com', '123'),
-(2, 4, 'sup1@gmail.com', '123'),
-(3, 2, 'sup2@gmail.com', '123');
+(5, 7, 'ex@gmail.com', '123'),
+(6, 9, 'ex1@gmail.com', '123'),
+(7, 10, 'ex2@gmail.com', '123'),
+(8, 11, 'cs608@gmail.com', '123'),
+(9, 12, 'cs609@gmail.com', '123');
 
 -- --------------------------------------------------------
 
@@ -278,37 +276,37 @@ ALTER TABLE `admins`
 -- AUTO_INCREMENT for table `courses`
 --
 ALTER TABLE `courses`
-  MODIFY `course_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `course_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `enrollments`
 --
 ALTER TABLE `enrollments`
-  MODIFY `enrollment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
+  MODIFY `enrollment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=128;
 
 --
 -- AUTO_INCREMENT for table `examinationhalls`
 --
 ALTER TABLE `examinationhalls`
-  MODIFY `hall_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `hall_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `examschedule`
 --
 ALTER TABLE `examschedule`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=88;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=416;
 
 --
 -- AUTO_INCREMENT for table `faculty`
 --
 ALTER TABLE `faculty`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `superintendents`
 --
 ALTER TABLE `superintendents`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `users`

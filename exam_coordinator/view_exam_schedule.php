@@ -32,22 +32,29 @@ function getNonOverlappingCourses($course_id, $conn) {
     return implode(', ', $non_overlapping_courses);
 }
 
+
 // Function to fetch superintendents and their associated courses
 function getSuperintendentCourses($conn) {
     $sql = "SELECT s.id, f.name as faculty_name, c.course_code
             FROM superintendents s
             JOIN Faculty f ON s.faculty_id = f.id
-            JOIN Courses c ON c.faculty_id = f.id";
+            LEFT JOIN Courses c ON c.faculty_id = f.id";
     $result = $conn->query($sql);
 
     $superintendents = [];
     while ($row = $result->fetch_assoc()) {
-        $superintendents[$row['id']]['faculty_name'] = $row['faculty_name'];
-        $superintendents[$row['id']]['courses'][] = $row['course_code'];
+        if (!isset($superintendents[$row['id']])) {
+            $superintendents[$row['id']]['faculty_name'] = $row['faculty_name'];
+            $superintendents[$row['id']]['courses'] = [];
+        }
+        if ($row['course_code']) {
+            $superintendents[$row['id']]['courses'][] = $row['course_code'];
+        }
     }
 
     return $superintendents;
 }
+
 
 // Fetch all courses
 $sql_courses = "SELECT course_id, course_code FROM Courses";
