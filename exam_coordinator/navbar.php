@@ -6,19 +6,19 @@
   <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav ml-auto">
       <li class="nav-item ">
-        <a class="nav-link" href="add_superintendent.php">Superintendent</a>
-      </li>
-      <li class="nav-item ">
         <a class="nav-link" href="add_course.php">Courses</a>
       </li>
       <li class="nav-item ">
-        <a class="nav-link" href="add_enrollment.php">Enrollments</a>
+        <a class="nav-link" href="manage_superintendents.php">Superintendent</a>
       </li>
       <li class="nav-item ">
-        <a class="nav-link" href="add_hall.php">Halls</a>
+        <a class="nav-link" href="assign_superintendent_credentials.php">Superintendent Credentials</a>
       </li>
       <li class="nav-item ">
-        <a class="nav-link" href="view_exam_schedule.php">Generate Schedule</a>
+        <a class="nav-link" href="manage_exam_halls.php">Halls</a>
+      </li>
+      <li class="nav-item ">
+        <a class="nav-link" href="manage_exam_schedule.php">Generate Schedule</a>
       </li>     
       <li class="nav-item ">
         <a class="nav-link" href="view_schedule.php">View Schedule</a>

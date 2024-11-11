@@ -2,41 +2,62 @@
 session_start();
 include('config.php');
 
+// Check if the user is an exam coordinator
 if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "exam_coordinator") {
     header("Location: login.php");
     exit;
 }
 
-// Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Get course code from form input
     $course_code = $_POST['course_code'];
-    $course_name = $_POST['course_name'];
-    $faculty_id = $_POST['faculty_id']; // Assuming you have a select option for faculty_id
 
-    // Check for existing course code
-    $sql = "SELECT * FROM Courses WHERE course_code = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("s", $course_code);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    // Check if a file is uploaded
+    if (isset($_FILES['enrollment_file']) && $_FILES['enrollment_file']['error'] === UPLOAD_ERR_OK) {
+        // File details
+        $fileTmpPath = $_FILES['enrollment_file']['tmp_name'];
+        $fileName = $_FILES['enrollment_file']['name'];
+        $fileType = $_FILES['enrollment_file']['type'];
 
-    if ($result->num_rows > 0) {
-        echo "<script>alert('Course code already exists'); window.location.href = 'add_course.php';</script>";
-    } else {
-        // Insert the new course
-        $sql = "INSERT INTO Courses (course_code, course_name, faculty_id) VALUES (?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ssi", $course_code, $course_name, $faculty_id);
+        // Make sure it is a text file
+        if ($fileType == 'text/plain') {
+            // Open the file and read each line (each line is a student ID)
+            $file = fopen($fileTmpPath, "r");
 
-        if ($stmt->execute()) {
-            echo "<script>alert('Course added successfully'); window.location.href = 'view_courses.php';</script>";
+            // Insert course into the courses table
+            $stmt = $conn->prepare("INSERT INTO courses (course_code) VALUES (?)");
+            $stmt->bind_param("s", $course_code);
+            if ($stmt->execute()) {
+                // Get the course_id of the inserted course
+                $course_id = $conn->insert_id;
+
+                // Insert each student ID from the text file into the enrollments table
+                $stmt_enroll = $conn->prepare("INSERT INTO enrollments (course_id, student_id) VALUES (?, ?)");
+
+                while (($student_id = fgets($file)) !== false) {
+                    $student_id = trim($student_id); // Clean up any extra whitespace/newlines
+                    if (!empty($student_id)) {
+                        $stmt_enroll->bind_param("is", $course_id, $student_id);
+                        $stmt_enroll->execute();
+                    }
+                }
+
+                fclose($file);
+                echo "<div class='alert alert-success'>Course and enrollments added successfully!</div>";
+            } else {
+                echo "<div class='alert alert-danger'>Error adding course: " . $stmt->error . "</div>";
+            }
+
+            $stmt->close();
         } else {
-            echo "<script>alert('Error adding course'); window.location.href = 'add_course.php';</script>";
+            echo "<div class='alert alert-danger'>Please upload a valid text file.</div>";
         }
+    } else {
+        echo "<div class='alert alert-danger'>Please upload a file.</div>";
     }
-    
-    $stmt->close();
 }
+
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -47,41 +68,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="../css/style.css">
-
 </head>
 <body>
 
-<?php
-include('navbar.php');
-?>
+<?php include('navbar.php'); ?>
 
 <div class="container mt-5">
-    <h2>Add New Course</h2>
-    <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST">
+    <h2>Add a New Course and Enrollments</h2>
+    <form action="add_course.php" method="post" enctype="multipart/form-data">
         <div class="form-group">
             <label for="course_code">Course Code:</label>
             <input type="text" class="form-control" id="course_code" name="course_code" required>
         </div>
         <div class="form-group">
-            <label for="course_name">Course Name:</label>
-            <input type="text" class="form-control" id="course_name" name="course_name" required>
-        </div>
-        <div class="form-group">
-            <label for="faculty_id">Faculty:</label>
-            <select class="form-control" id="faculty_id" name="faculty_id" required>
-                <?php
-                // Fetch and display all faculty members
-                $sql = "SELECT id, name FROM Faculty";
-                $result = $conn->query($sql);
-
-                while ($row = $result->fetch_assoc()) {
-                    echo "<option value='" . $row['id'] . "'>" . $row['name'] . "</option>";
-                }
-                ?>
-            </select>
+            <label for="enrollment_file">Upload Enrollment File (.txt):</label>
+            <input type="file" class="form-control" id="enrollment_file" name="enrollment_file" accept=".txt" required>
         </div>
         <button type="submit" class="btn btn-primary">Add Course</button>
-        <a class="btn btn-outline-dark" href="view_courses.php">View Courses</a>
+        <a class="btn btn-outline-dark" href="manage_courses.php">Manage Courses and Enrollments</a>
     </form>
 </div>
 

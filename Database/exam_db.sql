@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 21, 2024 at 09:34 AM
+-- Generation Time: Nov 11, 2024 at 02:56 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -47,21 +47,19 @@ INSERT INTO `admins` (`id`, `username`, `password`) VALUES
 --
 
 CREATE TABLE `courses` (
-  `course_id` int(11) NOT NULL,
-  `course_code` varchar(255) NOT NULL,
-  `course_name` varchar(255) NOT NULL,
-  `faculty_id` int(11) DEFAULT NULL
+  `id` int(11) NOT NULL,
+  `course_code` varchar(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `courses`
 --
 
-INSERT INTO `courses` (`course_id`, `course_code`, `course_name`, `faculty_id`) VALUES
-(20, 'CS201', 'CS201', 7),
-(21, 'CS301', 'CS301', 7),
-(22, 'CS401', 'CS401', 10),
-(24, 'CS609', 'CS609', 12);
+INSERT INTO `courses` (`id`, `course_code`) VALUES
+(2, 'CS201'),
+(3, 'CS301'),
+(4, 'CS304'),
+(5, 'CS401');
 
 -- --------------------------------------------------------
 
@@ -70,94 +68,84 @@ INSERT INTO `courses` (`course_id`, `course_code`, `course_name`, `faculty_id`) 
 --
 
 CREATE TABLE `enrollments` (
-  `enrollment_id` int(11) NOT NULL,
+  `id` int(11) NOT NULL,
   `course_id` int(11) NOT NULL,
-  `student_id` varchar(50) NOT NULL,
-  `enroll_date` timestamp NOT NULL DEFAULT current_timestamp()
+  `student_id` varchar(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `enrollments`
 --
 
-INSERT INTO `enrollments` (`enrollment_id`, `course_id`, `student_id`, `enroll_date`) VALUES
-(70, 20, 'BC220400424', '2024-09-12 09:10:22'),
-(71, 20, 'BC230400535', '2024-09-12 09:10:22'),
-(72, 20, 'BC210402444', '2024-09-12 09:10:22'),
-(73, 21, 'BC210209424', '2024-09-12 09:10:36'),
-(74, 21, 'BC220201625', '2024-09-12 09:10:36'),
-(79, 22, 'BC210402328', '2024-09-12 09:11:10'),
-(80, 22, 'BC210402444', '2024-09-12 09:11:10'),
-(81, 22, 'BC210402488', '2024-09-12 09:11:10'),
-(82, 22, 'BC210402561', '2024-09-12 09:11:10'),
-(83, 22, 'BC210402613', '2024-09-12 09:11:10'),
-(84, 22, 'BC210402688', '2024-09-12 09:11:10');
+INSERT INTO `enrollments` (`id`, `course_id`, `student_id`) VALUES
+(8, 2, 'BC220400424'),
+(9, 2, 'BC210402328'),
+(11, 3, 'BC210209424'),
+(12, 3, 'BC220201625'),
+(13, 3, 'MC230200032'),
+(14, 3, 'MC230400321'),
+(15, 3, 'MC220400551'),
+(16, 4, 'BC210402120'),
+(17, 4, 'BC210402167'),
+(18, 4, 'BC210402328'),
+(19, 4, 'BC210402444'),
+(20, 5, 'BC210402328'),
+(21, 5, 'BC210402444'),
+(22, 5, 'BC210402488'),
+(23, 5, 'BC210402561'),
+(24, 5, 'BC210402613'),
+(25, 5, 'BC210402688');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `examinationhalls`
+-- Table structure for table `exam_halls`
 --
 
-CREATE TABLE `examinationhalls` (
-  `hall_id` int(11) NOT NULL,
-  `hall_name` varchar(255) DEFAULT NULL,
-  `capacity` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `examinationhalls`
---
-
-INSERT INTO `examinationhalls` (`hall_id`, `hall_name`, `capacity`) VALUES
-(4, 'Jampur Hall', 50),
-(5, 'DgK Hall', 500);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `examschedule`
---
-
-CREATE TABLE `examschedule` (
+CREATE TABLE `exam_halls` (
   `id` int(11) NOT NULL,
-  `day_number` int(11) NOT NULL,
-  `courses` text NOT NULL,
-  `superintendent` varchar(255) NOT NULL,
-  `hall_name` varchar(255) NOT NULL
+  `building` varchar(100) NOT NULL,
+  `floor` int(11) NOT NULL,
+  `hall_number` varchar(50) NOT NULL,
+  `seating_capacity` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `examschedule`
+-- Dumping data for table `exam_halls`
 --
 
-INSERT INTO `examschedule` (`id`, `day_number`, `courses`, `superintendent`, `hall_name`) VALUES
-(412, 1, '20', 'CS304 Teacher', 'Jampur Hall'),
-(413, 2, '21', 'CS609 Teacher', 'Jampur Hall'),
-(414, 3, '22', 'CS304 Teacher', 'Jampur Hall'),
-(415, 4, '24', 'CS608 Teacher', 'Jampur Hall');
+INSERT INTO `exam_halls` (`id`, `building`, `floor`, `hall_number`, `seating_capacity`) VALUES
+(1, 'Main Building', 1, '101', 5),
+(2, 'Science Block', 2, '202', 100),
+(3, 'Library Annex', 3, '301', 30),
+(4, 'Engineering Hall', 1, '104', 70),
+(5, 'Arts Center', 2, '203', 40);
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `faculty`
+-- Table structure for table `exam_schedule`
 --
 
-CREATE TABLE `faculty` (
+CREATE TABLE `exam_schedule` (
   `id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL
+  `course_id` int(11) NOT NULL,
+  `day` int(11) NOT NULL,
+  `slot` varchar(50) NOT NULL,
+  `time_range` varchar(50) NOT NULL,
+  `superintendent_id` int(11) DEFAULT NULL,
+  `hall_number` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `faculty`
+-- Dumping data for table `exam_schedule`
 --
 
-INSERT INTO `faculty` (`id`, `name`) VALUES
-(7, 'CS201 and CS301 Teacher'),
-(9, 'CS304 Teacher'),
-(10, 'CS401 Teacher'),
-(11, 'CS608 Teacher'),
-(12, 'CS609 Teacher');
+INSERT INTO `exam_schedule` (`id`, `course_id`, `day`, `slot`, `time_range`, `superintendent_id`, `hall_number`) VALUES
+(9, 2, 1, 'Slot 1', '8:00 - 9:30', 3, '101'),
+(10, 3, 1, 'Slot 2', '10:00 - 11:30', 1, '101'),
+(11, 4, 4, 'Slot 1', '8:00 - 9:30', 1, '101'),
+(12, 5, 7, 'Slot 1', '8:00 - 9:30', 1, '202');
 
 -- --------------------------------------------------------
 
@@ -167,21 +155,40 @@ INSERT INTO `faculty` (`id`, `name`) VALUES
 
 CREATE TABLE `superintendents` (
   `id` int(11) NOT NULL,
-  `faculty_id` int(11) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `password` varchar(255) NOT NULL
+  `name` varchar(100) NOT NULL,
+  `designation` varchar(100) NOT NULL,
+  `department` varchar(100) NOT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `password` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `superintendents`
 --
 
-INSERT INTO `superintendents` (`id`, `faculty_id`, `email`, `password`) VALUES
-(5, 7, 'ex@gmail.com', '123'),
-(6, 9, 'ex1@gmail.com', '123'),
-(7, 10, 'ex2@gmail.com', '123'),
-(8, 11, 'cs608@gmail.com', '123'),
-(9, 12, 'cs609@gmail.com', '123');
+INSERT INTO `superintendents` (`id`, `name`, `designation`, `department`, `email`, `password`) VALUES
+(1, 'Haider CS201', 'Clerk', 'Emergency', 'sup@gmail.com', '$2y$10$6RGawRckEmnX1WulLr9bS.oXj2Wc90oTl.gfxQtWxTx0DC..jzUhS'),
+(3, 'Nasir CS401', 'Clerk', 'Emergency', 'sup1@gmail.com', '$2y$10$/dqzsaYLW6mJ2oaWFmdgEOivsL/kYV7.2JKBTvgpFy0kHwmCV2wRW');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `superintendent_courses`
+--
+
+CREATE TABLE `superintendent_courses` (
+  `id` int(11) NOT NULL,
+  `superintendent_id` int(11) NOT NULL,
+  `course_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `superintendent_courses`
+--
+
+INSERT INTO `superintendent_courses` (`id`, `superintendent_id`, `course_id`) VALUES
+(5, 3, 5),
+(6, 1, 2);
 
 -- --------------------------------------------------------
 
@@ -219,40 +226,44 @@ ALTER TABLE `admins`
 -- Indexes for table `courses`
 --
 ALTER TABLE `courses`
-  ADD PRIMARY KEY (`course_id`),
+  ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `course_code` (`course_code`);
 
 --
 -- Indexes for table `enrollments`
 --
 ALTER TABLE `enrollments`
-  ADD PRIMARY KEY (`enrollment_id`),
-  ADD UNIQUE KEY `unique_enrollment` (`course_id`,`student_id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `course_id` (`course_id`);
 
 --
--- Indexes for table `examinationhalls`
+-- Indexes for table `exam_halls`
 --
-ALTER TABLE `examinationhalls`
-  ADD PRIMARY KEY (`hall_id`);
-
---
--- Indexes for table `examschedule`
---
-ALTER TABLE `examschedule`
+ALTER TABLE `exam_halls`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `faculty`
+-- Indexes for table `exam_schedule`
 --
-ALTER TABLE `faculty`
-  ADD PRIMARY KEY (`id`);
+ALTER TABLE `exam_schedule`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `course_id` (`course_id`),
+  ADD KEY `superintendent_id` (`superintendent_id`);
 
 --
 -- Indexes for table `superintendents`
 --
 ALTER TABLE `superintendents`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `faculty_id` (`faculty_id`);
+  ADD UNIQUE KEY `email` (`email`);
+
+--
+-- Indexes for table `superintendent_courses`
+--
+ALTER TABLE `superintendent_courses`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `course_id` (`course_id`),
+  ADD KEY `superintendent_id` (`superintendent_id`);
 
 --
 -- Indexes for table `users`
@@ -276,37 +287,37 @@ ALTER TABLE `admins`
 -- AUTO_INCREMENT for table `courses`
 --
 ALTER TABLE `courses`
-  MODIFY `course_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `enrollments`
 --
 ALTER TABLE `enrollments`
-  MODIFY `enrollment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=128;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
--- AUTO_INCREMENT for table `examinationhalls`
+-- AUTO_INCREMENT for table `exam_halls`
 --
-ALTER TABLE `examinationhalls`
-  MODIFY `hall_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+ALTER TABLE `exam_halls`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
--- AUTO_INCREMENT for table `examschedule`
+-- AUTO_INCREMENT for table `exam_schedule`
 --
-ALTER TABLE `examschedule`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=416;
-
---
--- AUTO_INCREMENT for table `faculty`
---
-ALTER TABLE `faculty`
+ALTER TABLE `exam_schedule`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `superintendents`
 --
 ALTER TABLE `superintendents`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `superintendent_courses`
+--
+ALTER TABLE `superintendent_courses`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -319,10 +330,24 @@ ALTER TABLE `users`
 --
 
 --
--- Constraints for table `superintendents`
+-- Constraints for table `enrollments`
 --
-ALTER TABLE `superintendents`
-  ADD CONSTRAINT `superintendents_ibfk_1` FOREIGN KEY (`faculty_id`) REFERENCES `faculty` (`id`);
+ALTER TABLE `enrollments`
+  ADD CONSTRAINT `enrollments_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `exam_schedule`
+--
+ALTER TABLE `exam_schedule`
+  ADD CONSTRAINT `exam_schedule_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`),
+  ADD CONSTRAINT `exam_schedule_ibfk_2` FOREIGN KEY (`superintendent_id`) REFERENCES `superintendents` (`id`);
+
+--
+-- Constraints for table `superintendent_courses`
+--
+ALTER TABLE `superintendent_courses`
+  ADD CONSTRAINT `superintendent_courses_ibfk_1` FOREIGN KEY (`superintendent_id`) REFERENCES `superintendents` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `superintendent_courses_ibfk_2` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

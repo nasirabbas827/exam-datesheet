@@ -25,7 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // If no errors, check credentials and log in user
     if (empty($email_err) && empty($password_err)) {
-        $sql = "SELECT id, email, password FROM Superintendents WHERE email = ?";
+        $sql = "SELECT id, email, password FROM superintendents WHERE email = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("s", $param_email);
         $param_email = $email;
@@ -35,7 +35,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($stmt->num_rows == 1) {
             $stmt->bind_result($id, $email, $db_password);
             if ($stmt->fetch()) {
-                if ($password === $db_password) {  // Directly compare plaintext passwords
+                // Verify hashed password
+                if (password_verify($password, $db_password)) {
                     // Start session and log in user
                     $_SESSION["id"] = $id;
                     $_SESSION["email"] = $email;
@@ -81,7 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
         <div class="form-group">
             <label>Password</label>
-            <input type="password" name="password" class="form-control" value="<?php echo $password; ?>">
+            <input type="password" name="password" class="form-control">
             <span class="text-danger"><?php echo $password_err; ?></span>
         </div>
         <div class="form-group text-center">

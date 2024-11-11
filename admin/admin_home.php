@@ -11,10 +11,8 @@ if (!isset($_SESSION["usertype"]) || $_SESSION["usertype"] !== "admin") {
 // Fetch data for dashboard
 $totalUsers = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM users"))['total'];
 $totalCourses = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM Courses"))['total'];
-$totalHalls = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM ExaminationHalls"))['total'];
+$totalHalls = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM exam_halls"))['total'];
 $totalEnrollments = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM Enrollments"))['total'];
-$totalSchedules = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM ExamSchedule"))['total'];
-$totalFaculty = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM Faculty"))['total'];
 $totalSuperintendents = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM Superintendents"))['total'];
 
 ?>
@@ -73,24 +71,6 @@ include('admin_navbar.php');
                 <div class="card-body">
                     <h5 class="card-title">Total Enrollments</h5>
                     <p class="card-text"><?php echo $totalEnrollments; ?></p>
-                </div>
-            </div>
-        </div>
-        <!-- Total Exam Schedules Card -->
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Total Exam Schedules</h5>
-                    <p class="card-text"><?php echo $totalSchedules; ?></p>
-                </div>
-            </div>
-        </div>
-        <!-- Total Faculty Card -->
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Total Faculty</h5>
-                    <p class="card-text"><?php echo $totalFaculty; ?></p>
                 </div>
             </div>
         </div>
