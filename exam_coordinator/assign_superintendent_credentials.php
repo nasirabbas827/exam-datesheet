@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($email_check->num_rows > 0) {
             $message = "Email already exists. Please use a different email.";
         } else {
-            $conn->query("UPDATE superintendents SET email = '$email', password = '$password' WHERE id = $id");
+            $conn->query("UPDATE superintendents SET email = '$email', password = "YOUR_OWN_API_KEY" WHERE id = $id");
             $message = "Credentials assigned successfully!";
         }
     } elseif (isset($_POST['edit_credentials'])) {
@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($email_check->num_rows > 0) {
             $message = "Email already exists. Please use a different email.";
         } else {
-            $conn->query("UPDATE superintendents SET email = '$email', password = '$password' WHERE id = $id");
+            $conn->query("UPDATE superintendents SET email = '$email', password = "YOUR_OWN_API_KEY" WHERE id = $id");
             $message = "Credentials updated successfully!";
         }
     } elseif (isset($_POST['delete_superintendent'])) {
